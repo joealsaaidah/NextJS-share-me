@@ -1,7 +1,5 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { SanityAdapter } from "next-auth-sanity";
-import { client } from "../../../utils/client";
 
 export default NextAuth({
   // Configure one or more authentication providers
@@ -16,8 +14,10 @@ export default NextAuth({
   pages: {
     signIn: "/auth/signin",
   },
-  adapter: SanityAdapter(client),
-  session: {
-    jwt: true,
+  callbacks: {
+    async session({ session }) {
+      session.user.id = session.user.email.split("@")[0].toLocaleLowerCase();
+      return session;
+    },
   },
 });
