@@ -1,6 +1,24 @@
 import Head from "next/head";
+import { getSession, useSession } from "next-auth/react";
+import { client } from "../utils/client";
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const { name, email, image } = session;
+
+  if (status === "authenticated") {
+    const doc = {
+      _id: email,
+      _type: "user",
+      userName: name,
+      image: image,
+    };
+
+    client.createIfNotExists(doc);
+
+    /* return <p>Signed in as {session.user.email}</p> */
+  }
+
   return (
     <div className=''>
       <Head>
@@ -13,3 +31,19 @@ export default function Home() {
     </div>
   );
 }
+
+export const getServerSideProps = async (context) => {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/auth/signin",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: { session },
+  };
+};
